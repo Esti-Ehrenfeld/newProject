@@ -1,0 +1,411 @@
+<!-- זה קוד שבניתי לבד  -->
+<!-- עדיין לא עובד פונקציונאלית -->
+<!-- רק סדרתי גלריה -->
+<!-- עשיתי את זה לפני שהיה לי את הקוד השני -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>ZIM Matching Game with Images</title>
+<script type="module">
+import zim from "https://zimjs.org/cdn/017/zim";
+
+const assets = ["1.jpg", "2.jpg", "3.jpg", "1+1.jpg", "2+2.jpg", "3+3.jpg"];
+const frame = new Frame("fit", 1024, 768, "#fff", "#000", ready, assets, "images/");
+
+function ready() {
+
+    const stage = frame.stage;
+    STYLE = { reg: CENTER, backgroundColor: white };
+
+    // Image objects to drag
+    const objectsList = [
+        new Bitmap(frame.asset("1.jpg")),
+        new Bitmap(frame.asset("2.jpg")),
+        new Bitmap(frame.asset("3.jpg"))
+    ];
+
+    // Image targets
+    const targetsList = [
+        new Bitmap(frame.asset("1+1.jpg")),
+        new Bitmap(frame.asset("2+2.jpg")),
+        new Bitmap(frame.asset("3+3.jpg"))
+    ];
+
+    // Match objects with targets
+    loop(objectsList, (obj, i) => {
+        obj.match = targetsList[i];
+    });
+
+    shuffle(targetsList, true); // Shuffle targets
+
+    // Display targets
+    let targets = new Tile(targetsList, 3, 1, 200, 0, true)
+        .pos(0, 200, CENTER)
+        .alp(0)
+        .animate({ wait: .5, props: { alpha: 1 } });
+
+    // Display draggable objects
+    const objects = new Tile(objectsList, 3, 1, 200, 0, true)
+        .drag()
+        .pos(0, 150, CENTER, BOTTOM);
+
+    // Save starting positions for objects
+    objects.loop(obj => {
+        obj.startX = obj.x;
+        obj.startY = obj.y;
+    });
+
+    // Handle drag and release
+    objects.on("pressup", e => {
+        let obj = e.target;
+        if (obj.hitTestBounds(obj.match)) { // Correct match
+            obj.loc(obj.match).noMouse();
+            obj.match.removeFrom();
+            
+            if (targets.numChildren === 0) { // End game
+                new Label("כל הכבוד!", 60, null, dark, null, null, null, true)
+                    .center()
+                    .alp(0)
+                    .animate({ props: { alpha: 1 } });
+            }
+        } else { // Snap back to original position
+            obj.animate({
+                props: { x: obj.startX, y: obj.startY },
+                time: .5,
+                ease: "elasticOut"
+            });
+        }
+    });
+}
+</script>
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+<body></body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>משחק התאמות - משחק</title>
+    <script type="module">
+        import zim from "https://zimjs.org/cdn/017/zim";
+
+        const assets = ["0.jpg", "1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "7.jpg", "8.jpg", "9.jpg", "10.jpg", "11.jpg"];
+        const frame = new Frame("fit", 1024, 768, light, dark, ready, assets, "images/");
+
+        const assets2 = ["0+0.jpg", "1+1.jpg", "2+2.jpg", "3+3.jpg", "4+4.jpg", "5+5.jpg", "6+6.jpg", "7+7.jpg", "8+8.jpg", "9+9.jpg", "10+10.jpg", "11+11.jpg"];
+        const frame2 = new Frame("fit", 1024, 768, light, dark, ready, assets2, "images/");
+
+        function ready() {
+            const stage = frame.stage;
+
+            // רקע
+            new Rectangle(frame.width, frame.height, "lightgrey").addTo(stage);
+
+            // מלבן מרכזי
+            const centralBox = new Rectangle(600, 400, "white").center(stage).addTo(stage);
+            new Label({
+                text: "התאם את התמונות",
+                size: 24,
+                color: "black",
+                align: "center",
+                font: "Arial"
+            }).pos(centralBox.x + 300, centralBox.y - 220).addTo(stage);
+
+            // פרמטרים למיקום התמונות בתוך המלבן
+            const columns = 4;
+            const rows = 3;
+            const spacingH = 140;
+            const spacingV = 120;
+            const offsetX = centralBox.x + 20;
+            const offsetY = centralBox.y + 20;
+
+            // תמונות בתוך המלבן
+            const originalImages = [];
+            assets.forEach((asset, index) => {
+                const image = frame.asset(asset).sca(0.01).drag();
+                const col = index % columns;
+                const row = Math.floor(index / columns);
+                image.pos(offsetX + col * spacingH, offsetY + row * spacingV).addTo(stage);
+                originalImages.push(image);
+            });
+
+            // עותקי תמונות מחוץ למלבן (פריסה עגולה)
+            const duplicateImages = [];
+            const radius = 300;
+            assets2.forEach((asset, index) => {
+                const image = frame2.asset2(asset).sca(0.01).drag();
+                const angle = (360 / assets2.length) * index;
+                const x = centralBox.x + 300 + radius * Math.cos((angle * Math.PI) / 180);
+                const y = centralBox.y + 200 + radius * Math.sin((angle * Math.PI) / 180);
+                image.pos(x, y).addTo(stage);
+                duplicateImages.push(image);
+            });
+
+            stage.update();
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+
+<body></body>
+
+</html> -->
+
+
+
+<!-- רואים 12 תמונות וכפתור עובד -->
+<!-- <!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>משחק התאמות - משחק</title>
+    <script type="module">
+        import zim from "https://zimjs.org/cdn/017/zim";
+
+      
+        // const assets = ["0.jpg", "1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "7.jpg", "8.jpg", "9.jpg", "10.jpg", "11.jpg"];
+        const assets = ["0.jpg", "1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "7.jpg", "8.jpg", "9.jpg", "10.jpg", "11.jpg"];
+        const frame = new Frame("fit", 1024, 768, light, dark, ready, assets, "images/");
+        function ready() {
+            const stage = frame.stage;
+
+            // רקע
+            new Rectangle(frame.width, frame.height, "lightgrey").addTo(stage);
+
+            // פרמטרים למיקום התמונות
+            const columns = 4;
+            const rows = 3;
+            const spacingH = 150;
+            const spacingV = 150;
+            const offsetX = (frame.width - (columns - 1) * spacingH) / 2;
+            const offsetY = (frame.height - (rows - 1) * spacingV) / 2;
+
+            let pairs = [];
+
+            // הוספת כל התמונות
+            assets.forEach((asset, index) => {
+                const image = frame.asset(asset).sca(0.2).drag();
+                const col = index % columns;
+                const row = Math.floor(index / columns);
+                image.pos(offsetX + col * spacingH, offsetY + row * spacingV).addTo(stage);
+
+                image.on("pressup", () => {
+                    pairs.push(asset);
+                    if (pairs.length === 2) {
+                        if (checkMatch(pairs)) {
+                            console.log("Pair matched!");
+                            pairs.length = 0; // איפוס זוגות
+                        } else {
+                            console.log("No match!");
+                            pairs.length = 0;
+                        }
+                    }
+                });
+            });
+
+            function checkMatch(pair) {
+                return pair[0].split('.')[0] === pair[1].split('.')[0];
+            }
+
+            // כפתור מעבר למסך סיום
+            const endButton = new Button({
+                label: "סיים משחק",
+                width: 200,
+                height: 70,
+                color: "darkblue",
+                rollColor: "blue",
+                labelColor: "white",
+                corner: 20
+            }).pos(frame.width - 250, frame.height - 100).addTo(stage);
+
+            endButton.on("click", () => {
+                window.location.href = "endPage.html";
+            });
+
+            stage.update();
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+
+<body></body>
+
+</html> -->
+
+<!-- רואים 12 תמונות עובד -->
+<!-- <!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>משחק התאמות</title>
+    <script type="module">
+        import zim from "https://zimjs.org/cdn/017/zim";
+
+        // יצירת Frame עם נכסים
+        const scaling = "fit";
+        const width = 1024;
+        const height = 768;
+        const color = light;
+        const outerColor = dark;
+
+        // נכסים זמינים
+        const assets = ["0.jpg", "1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "7.jpg", "8.jpg", "9.jpg", "10.jpg", "11.jpg"];
+        const frame = new Frame(scaling, width, height, color, outerColor, ready, assets, "images/");
+
+        function ready() {
+            const stage = frame.stage;
+
+            // רקע
+            const background = new Rectangle(frame.width, frame.height, "lightgrey");
+            stage.addChild(background);
+
+            // פרמטרים למיקום
+            const columns = 4; // מספר טורים
+            const rows = 3;    // מספר שורות
+            const spacingH = 150; // מרחק אופקי
+            const spacingV = 150; // מרחק אנכי
+            const offsetX = (frame.width - (columns - 1) * spacingH) / 2; // מרכוז אופקי
+            const offsetY = (frame.height - (rows - 1) * spacingV) / 2;   // מרכוז אנכי
+
+            // הוספת כל התמונות
+            assets.forEach((asset, index) => {
+                const image = frame.asset(asset);
+                image.sca(0.03); // שינוי גודל התמונה
+                const col = index % columns; // מספר הטור
+                const row = Math.floor(index / columns); // מספר השורה
+                image.pos(offsetX + col * spacingH, offsetY + row * spacingV); // מיקום התמונה
+                image.drag(); // אפשרות לגרירה
+                stage.addChild(image);
+            });
+
+            stage.update();
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+
+<body></body>
+
+</html> -->
+
+
+
+<!-- עובד --> 
+<!-- 
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>משחק התאמות</title>
+    <script type="module">
+        import zim from "https://zimjs.org/cdn/017/zim";
+
+        // יצירת Frame עם נכסים
+        const scaling = "fit";
+        const width = 1024;
+        const height = 768;
+        const color = light;
+        const outerColor = dark;
+
+        // נכסים זמינים
+        const assets = ["0.jpg", "1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "7.jpg", "8.jpg", "9.jpg", "10.jpg", "11.jpg"];
+        const frame = new Frame(scaling, width, height, color, outerColor, ready, assets, "images/");
+
+        function ready() {
+            const stage = frame.stage;
+
+            // רקע
+            const background = new Rectangle(frame.width, frame.height, "lightgrey");
+            stage.addChild(background);
+
+            // הוספת כל התמונות
+            assets.forEach((asset, index) => {
+                const image = frame.asset(asset);
+                image.scaleTo(0.5); // שינוי גודל התמונה
+              //  image.pos((index % 8) * 150 + 50, Math.floor(index / 8) * 15 + 5); // מיקום בשורות
+              image.pos(index % 0.5);
+                image.drag().sca(0.1); // אפשרות לגרירה
+                stage.addChild(image);
+            });
+
+            stage.update();
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+
+<body></body>
+
+</html> -->
+
+
+
+
+<!-- //של עמי -->
+<!-- <!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>משחק התאמות</title>
+    <script type="module">
+        import zim from "https://zimjs.org/cdn/017/zim";
+
+        // יצירת Frame עם נכסים
+        const scaling = "fit";
+        const width = 1024;
+        const height = 768;
+        const color = light;
+        const outerColor = dark;
+        var assets = ["0.jpg", "1.jpg", "2.jpg", "3.jpg"]
+        // const frame = new Frame(scaling, width, height, color, outerColor, ready, assets, "images/");
+        const frame = new Frame(scaling, width, height, color, outerColor, ready, assets, "images/");
+
+        function ready() {
+            const stage = frame.stage;
+
+         
+
+            // רקע
+            const background = new Rectangle(frame.width, frame.height, "lightgrey");
+            stage.addChild(background);
+
+            // // //פיזיקה
+            // var phiysics = new Physics({ borders: new Boundary(0, -100, stageW, stageW + 100) });
+            // phiysics.drag();
+            // phiysics.debug();
+
+
+            // הוספת האובייקט שאני רוצה
+            // var obj = frame.asset(images.json)
+            // zog(obj);
+            // loop(obj.data, function (item) {
+            //     zog(item);
+            //     var image = frame.asset(item);
+            //     image.centerReg().addPhysics()
+            // })
+
+            var image = frame.asset("0.jpg");
+            image.centerReg//.addPhysics(); // מרכז את התמונה על המסך
+            image.drag(); // מאפשר גרירה של התמונה
+
+        
+
+            stage.update();
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+
+<body></body>
+
+</html>  -->
+

@@ -1,0 +1,192 @@
+
+<!-- זה המשחק שממנו אני מעתיקה -->
+<!-- אני צריכה במקום צורות לקחת תמונות -->
+
+<!-- עובד -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>ZIM - Code Creativity</title>
+
+
+<script type="module">
+
+import zim from "https://zimjs.org/cdn/017/zim";
+
+// See Docs under Frame for FIT, FILL, FULL, and TAG
+new Frame(FIT, 1024, 768, light, dark, ready);
+function ready() {
+    
+    // given F (Frame), S (Stage), W (width), H (height)
+    // put code here
+
+STYLE = {	
+	color:white,
+	borderColor:dark,
+	borderWidth:3,
+	reg:CENTER,
+	backgroundColor:blue
+}
+
+// these are what we drag
+const objectsList = [
+	new Label("Square"),
+	new Label("Circle"),
+	new Label("Triangle")
+];
+
+// these are what we drag to
+STYLE.color = pink;
+const targetsList = [
+    new Rectangle(), 
+	new Circle(),
+	new Triangle(110,110,110)
+];
+
+STYLE = {}
+
+// set up the match
+loop(objectsList, (obj, i) => {
+	obj.match = targetsList[i];
+});
+
+shuffle(targetsList, true); // true makes sure not the same as the original
+
+// tile the targets and objects
+let targets = new Tile(targetsList, 3, 1, 100, 0, true) // true to keep list in order	
+	.pos(0,200,CENTER)
+	.alp(0)
+	.animate({
+		wait:.5,
+		props:{alpha:1}
+	});
+
+const objects = new Tile(objectsList, 3, 1, 50, 0, true)
+	.drag()
+	.pos(0,150,CENTER,BOTTOM);
+
+STYLE = {};
+
+
+// Record start locations to snap back to
+objects.loop(obj => {
+	obj.startX = obj.x;
+	obj.startY = obj.y;
+});
+
+// Optional line as dragging
+// Create the shape where we draw the line
+const shape = new Shape().addTo().ord(-1); // one under the label we are dragging
+
+// Record which shape has been picked up
+// This gets used in the Ticker
+let currentShape;
+objects.on("mousedown", e => {
+	currentShape = e.target;
+	objects.loop(obj=>{if (obj!=currentShape) obj.noMouse();})
+});
+Ticker.add(() => {
+	if (currentShape) {
+		let obj = currentShape;
+		// shape is on stage but objects are in tiles
+		// so need to get global positions that match position in parent
+		let point1 = obj.parent.localToGlobal(obj.startX, obj.startY);
+		let point2 = obj.parent.localToGlobal(obj.x, obj.y);
+		shape.c().s(red).ss(4)
+			.mt(point1.x, point1.y)
+			.lt(point2.x, point2.y);
+	}
+});
+
+const emitter = new Emitter({obj:new Circle(20,[pink,purple],dark), startPaused:true});
+
+objects.on("pressup", e => {
+	// Test to see if object is hitting target
+	objects.loop(obj=>{obj.mouse();})
+	let obj = e.target;
+	if (obj.hitTestBounds(obj.match)) { // if match
+		obj.loc(obj.match).noMouse(); // don't let user pick up object		
+		obj.match.removeFrom();
+		emitter.loc(obj).spurt(10);
+		
+		  
+		shape.c(); // for line
+		currentShape = null; // for line
+		  
+		if (targets.numChildren==0) { // end game
+			objects.animate({
+				props:{scale:1.5},
+				time:.2,
+				rewind:true,
+				loopCount:2,
+				sequence:.1
+			});
+			replay.animate({
+				wait:.5,
+				props:{alpha:1}
+			});
+		}
+
+	} else { // snap back - no match
+
+		objects.noMouse();		
+		obj.animate({
+			props:{x:obj.startX, y:obj.startY},
+			time:.5,
+			ease:"elasticOut",
+			call:() => {
+				objects.mouse();
+				currentShape = null;
+			}
+		});
+	}
+});
+
+
+
+const replay = new Button({
+	label:"REPLAY",
+	backgroundColor:green,
+	rollBackgroundColor:pink,
+	corner:0
+})
+	.pos(0,100,CENTER,CENTER)
+	.alp(0)
+	.tap(() => {
+		replay.alp(0);
+
+		// restarting is always tricky
+		// you could just use zgo("matching.html");
+		objects.loop(obj => {
+			obj.animate({
+				props:{x:obj.startX, y:obj.startY},
+				time:.7,
+				ease:"backOut",
+				call:() => {
+					obj.mouse(); // add mouse control back
+				}
+			});
+		});
+		shuffle(targetsList, true);
+		targets.removeFrom();
+   
+		targets = new Tile(targetsList, 3, 1, 100, 0, true)
+			.pos(0,180,CENTER)
+			.bot()
+			.alp(0)
+			.animate({
+				wait:1,
+				props:{alpha:1}
+			});
+		S.update();
+	});
+
+new Label("ZIM Matching Game").alp(.8).pos(40,40);
+} // end ready
+
+</script>
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+</head>
+<body></body>
+</html>
